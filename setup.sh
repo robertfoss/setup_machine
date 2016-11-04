@@ -19,6 +19,7 @@ configSsh()
     sed -i 's/.*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
     sed -i 's/.*AuthorizedKeysFile.*/AuthorizedKeysFile %h\/.ssh\/authorized_keys/' /etc/ssh/sshd_config
     sed -i 's/.*PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
     service ssh restart
 }
 
@@ -29,23 +30,41 @@ copyUserFiles()
     cp "$RESDIR/.bashrc" "$HOMEDIR/"
     cp "$RESDIR/.zshrc" "$HOMEDIR/"
     mkdir -p "$HOMEDIR/.ssh"
-    cp "$RESDIR/id_rsa.pu" "$HOMEDIR/.ssh/"
+    cp "$RESDIR/id_rsa.pub" "$HOMEDIR/.ssh/authorized_keys"
+}
+
+setupZsh()
+{
+    HOMEDIR=$( getent passwd "$1" | cut -d: -f6 )
+    ZSH="$HOMEDIR/.oh-my-zsh"
+    git clone --depth=1 https://github.com/robbyrussell/oh-my-zsh.git $ZSH
+    chsh -s /bin/zsh $1
+}
+
+setOnwner()
+{
+    HOMEDIR=$( getent passwd "$1" | cut -d: -f6 )
+    chown -R $1 $HOMEDIR
 }
 
 setupUser()
 {
+    groupadd admin
     if id -u $1 > /dev/null 2>&1; then
         echo "User $1 found"
+        groupadd admin
+        usermod -a -G admin $1
     else
         echo "User $1 created"
         useradd -m $1 -d /home/$1
-        chown -R $1 /home/$1
+        usermod -a -G admin $1
     fi
 
     cd
-    sh -c "$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
+    setupZsh $1
     copyUserFiles $1
     configSudo $1
+    setOnwner $1
 }
 
 noFail()
@@ -61,9 +80,9 @@ noFail()
 }
 
 noFail apt update
-noFail apt install zsh git wget sudo openssh-server
+noFail apt install zsh git wget sudo openssh-server mosh
 
-rm -rf ${RESDIR}; git clone https://github.com/robertfoss/setup_machine.git ${RESDIR}
+rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
 setupUser hottuna
 setupUser root
@@ -75,5 +94,3 @@ echo "------"
 echo " DONE"
 echo "------"
 echo ""
-
-
