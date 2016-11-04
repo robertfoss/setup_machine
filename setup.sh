@@ -2,10 +2,10 @@
 
 RESDIR="/tmp/setup_machine"
 
-#if [ "$(id -u)" != "0" ]; then
-#   echo "This script must be run as root" 1>&2
-#   exit 1
-#fi
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
 
 configSudo()
 {
@@ -24,6 +24,7 @@ configSsh()
 
 copyUserFiles()
 {
+    echo "Copying files to home of $1"
     HOMEDIR=$( getent passwd "$1" | cut -d: -f6 )
     cp "$RESDIR/.bashrc" "$HOMEDIR/"
     cp "$RESDIR/.zshrc" "$HOMEDIR/"
@@ -43,19 +44,36 @@ setupUser()
 
     cd
     sh -c "$(wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
-    configSudo
-    
+    copyUserFiles $1
+    configSudo $1
 }
 
+noFail()
+{
+    if eval "$@"; then
+        :
+    else
+        echo ""
+        echo "Command \"$@\" failed"
+        echo ""
+        exit 1
+    fi
+}
 
-apt update
-apt install zsh git wget sudo openssh-server
+noFail apt update
+noFail apt install zsh git wget sudo openssh-server
 
-git clone git@github.com:robertfoss/setup_machine.git ${RESDIR}
+rm -rf ${RESDIR}; git clone https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
 setupUser hottuna
 setupUser root
 
-configSsh 1
+noFail configSsh
+
+echo ""
+echo "------"
+echo " DONE"
+echo "------"
+echo ""
 
 

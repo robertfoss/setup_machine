@@ -1,3 +1,3 @@
 # setup_machine
 
-    sh -c "$(wget https://raw.githubusercontent.com/robertfoss/setup_machine/master/setup.sh -O -)"
+    sh -c "$(wget https://github.com/robertfoss/setup_machine/raw/master/setup.sh -O -)"
