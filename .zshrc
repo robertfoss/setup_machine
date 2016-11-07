@@ -83,6 +83,22 @@ export USE_CCACHE=1
 export CCACHE_DIR=/opt/.ccache
 export CCACHE_COMPRESS=true
 
+function httpserver()
+{
+    if [[  -z  $1  ]] then;
+        echo ""
+        echo "Required arguments: httpserver port"
+        echo ""
+        echo "Example:"
+        echo "httpserver 8000"
+        echo ""
+    fi
+
+    PORT="$1"
+
+    python -c "from twisted.web.server import Site; from twisted.web.static import File; from twisted.internet import reactor; reactor.listenTCP($PORT, Site(File(\".\"))); reactor.run()"
+}
+
 ## Allgone uploader
 function allgone()
 {
