@@ -27,7 +27,10 @@ copyUserFiles()
 {
     echo "Copying files to home of $1"
     HOMEDIR=$( getent passwd "$1" | cut -d: -f6 )
-    cp -r "$RESDIR/dotfiles/*" "$HOMEDIR/"
+    for file in `ls -a "$RESDIR/dotfiles"`; do
+        cp -r "$RESDIR/dotfiles/$file" "$HOMEDIR/"
+    done
+
 }
 
 setupZsh()
