@@ -80,7 +80,7 @@ noFail()
 }
 
 noFail apt update
-noFail apt -y install zsh git wget sudo openssh-server mosh
+noFail apt -y install zsh git wget sudo openssh-server mosh nano
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
