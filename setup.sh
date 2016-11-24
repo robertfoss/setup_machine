@@ -80,7 +80,8 @@ noFail()
 }
 
 noFail apt update
-noFail apt -y install zsh git wget sudo openssh-server mosh nano
+noFail apt -y install zsh git wget sudo openssh-server mosh nano screen
+apt -y install silversearcher-ag
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
