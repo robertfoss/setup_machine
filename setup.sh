@@ -28,14 +28,22 @@ copyUserFiles()
 {
     echo "Copying files to home of $1"
     HOMEDIR=$( getent passwd "$1" | cut -d: -f6 )
-    cp -R "$RESDIR/dotfiles/" "$HOMEDIR/"
+    cd $RESDIR/dotfiles
+    for file in `ls -A`; do
+        cp -r "$file" "$HOMEDIR/"
+    done
 }
 
 copyUdev()
 {
+(
     echo "Copying udev rules"
-    cp -R "$RESDIR/udev/" "/etc/udev/rules.d/"
+    cd $RESDIR/udev
+    for file in `ls -A`; do
+        cp -r "$file" "/etc/udev/rules.d/"
+    done
     service udev reload
+)
 }
 
 setupZsh()
@@ -85,7 +93,8 @@ noFail()
 }
 
 noFail apt update
-noFail apt -y install zsh git wget sudo openssh-server mosh
+noFail apt -y install zsh git wget sudo openssh-server mosh nano screen
+apt -y install silversearcher-ag
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
