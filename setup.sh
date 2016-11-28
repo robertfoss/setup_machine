@@ -11,6 +11,7 @@ configSudo()
 {
     echo "Configuring sudo for $1"
     echo "$1 ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    sed -i 's/.*Defaults.*env_reset.*/Defaults        env_reset,timestamp_timeout=60/' /etc/sudoers
 }
 
 configSsh()
@@ -27,7 +28,14 @@ copyUserFiles()
 {
     echo "Copying files to home of $1"
     HOMEDIR=$( getent passwd "$1" | cut -d: -f6 )
-    cp -r "$RESDIR/dotfiles/" "$HOMEDIR/"
+    cp -R "$RESDIR/dotfiles/" "$HOMEDIR/"
+}
+
+copyUdev()
+{
+    echo "Copying udev rules"
+    cp -R "$RESDIR/udev/" "/etc/udev/rules.d/"
+    service udev reload
 }
 
 setupZsh()
@@ -85,6 +93,7 @@ setupUser hottuna
 setupUser root
 
 noFail configSsh
+noFail copyUdev
 
 echo ""
 echo "------"
