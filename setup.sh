@@ -65,13 +65,15 @@ setupUser()
     groupadd admin
     if id -u $1 > /dev/null 2>&1; then
         echo "User $1 found"
-        groupadd admin
-        usermod -a -G admin $1
     else
         echo "User $1 created"
         useradd -m $1 -d /home/$1
-        usermod -a -G admin $1
     fi
+
+    groupadd admin
+    usermod -a -G admin $1
+    groupadd plugdev
+    usermod -a -G plugdev $1
 
     cd
     setupZsh $1
@@ -98,7 +100,7 @@ apt -y install silversearcher-ag
 
 DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
               gcc cmake automake autoconf libtool ninja guake default-jdk \
-              autossh"
+              autossh adb fastboot zlib1g-dev android-tools-fsutils"
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
