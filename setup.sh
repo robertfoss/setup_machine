@@ -11,7 +11,7 @@ configSudo()
 {
     echo "Configuring sudo for $1"
     echo "$1 ALL=(ALL:ALL) ALL" >> /etc/sudoers
-    sed -i 's/.*Defaults.*env_reset.*/Defaults        env_reset,timestamp_timeout=60/' /etc/sudoers
+    sed -i 's/.*Defaults.*env_reset.*/Defaults	env_reset,!tty_tickets,timestamp_timeout=60/' /etc/sudoers
 }
 
 configSsh()
@@ -95,6 +95,10 @@ noFail()
 noFail apt update
 noFail apt -y install zsh git wget sudo openssh-server mosh nano screen
 apt -y install silversearcher-ag
+
+DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
+              gcc cmake automake autoconf libtool ninja guake default-jdk \
+              autossh"
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
