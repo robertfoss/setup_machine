@@ -95,7 +95,7 @@ noFail()
 }
 
 noFail apt update
-noFail apt -y install zsh git wget sudo openssh-server mosh nano screen
+noFail apt -y install zsh git wget sudo openssh-server mosh nano screen htop
 apt -y install silversearcher-ag
 
 DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
