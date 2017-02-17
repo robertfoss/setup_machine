@@ -100,7 +100,8 @@ apt -y install silversearcher-ag
 
 DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
               gcc cmake automake autoconf libtool ninja guake default-jdk \
-              autossh adb fastboot zlib1g-dev android-tools-fsutils"
+              autossh adb fastboot zlib1g-dev android-tools-fsutils python-pip \
+              python3-pip aria2 libboost-all-dev vim"
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
