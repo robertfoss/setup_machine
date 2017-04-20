@@ -53,7 +53,7 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/g
 export PATH="/opt/SEGGER/JLink:$PATH"
 export PATH="/opt/nordic:$PATH"
 export PATH="$PATH:/opt/esp-open-sdk/xtensa-lx106-elf/bin"
-export PATH="$PATH:/opt/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin"
+export PATH="$PATH:/opt/rpi_tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin"
 export PATH="$PATH:/opt/gcc-linaro-4.9-2014.11-x86_64_aarch64-linux-gnu/bin"
 export PATH="/opt/depot_tools:$PATH"
 export PATH="$PATH:/home/hottuna/.cargo/bin"
@@ -67,6 +67,8 @@ source $ZSH/oh-my-zsh.sh
 alias lg="log --graph --pretty=format:'%Cred%h%Creset - %C(bold blue)%an%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)' --abbrev-commit"
 alias ll="ls -lah"
 alias weechat="mosh -p 11500:16000 --ssh=\"ssh -p 11000\" k.xil.se -- screen -D -RR weechat weechat-curses"
+alias ds="du -d 1 -h | sort --sort=human-numeric"
+alias x="xdg-open"
 
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -135,7 +137,7 @@ gg(){
 
 ## Replace in files recursively
 replace_files(){
-  grep -rl $1 . | xargs sed -i "s/$1/$2/g"
+  grep -rl $1 . | xargs sed -i "s/${1}/${2}/g"
 }
 
 ## Run command until it fails
@@ -339,7 +341,7 @@ function checkpatch {
   fi
 }
 
-function update_zimage {
+function rpi_init {
   (cd && sudo cp zImage /boot/zImage && sync && rm zImage && sudo reboot)
 }
 
@@ -348,53 +350,52 @@ function rpi_zimage {
   (
     cd ~/work/linux/ && \
     scp arch/arm/boot/zImage $1:~/zImage && \
-    ssh $1 "$(typeset -f update_zimage); update_zimage"
+    ssh $1 "$(typeset -f rpi_init); rpi_init"
   )
 }
 
-function update_rpi {
+function rpi_update {
   (
     cd ~/work/linux/ && \
-    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- && \
-    rpi_zimage
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage modules dtbs -j$(nproc --ignore=1)&& \
+    rpi_zimage $1
   )
 }
 
 function concatenate_colon {
-	local IFS=':'
-	echo "$*"
+  local IFS=':'
+  echo "$*"
 }
 
 function add_export_env {
-	local VAR="$1"
-	shift
-	local VAL=$(eval echo "\$$VAR")
-	if [ "$VAL" ]; then
-		VAL=$(concatenate_colon "$@" "$VAL");
-	else
-		VAL=$(concatenate_colon "$@");
-	fi
-	eval "export $VAR=\"$VAL\""
+  local VAR="$1"
+  shift
+  local VAL=$(eval echo "\$$VAR")
+  if [ "$VAL" ]; then
+    VAL=$(concatenate_colon "$@" "$VAL");
+  else
+    VAL=$(concatenate_colon "$@");
+  fi
+  eval "export $VAR=\"$VAL\""
 }
 
 function prefix_setup {
-	local PFX="$1"
+  local PFX="$1"
 
-	add_export_env PATH "$PFX/bin"
-	add_export_env LD_LIBRARY_PATH "$PFX/lib"
-	add_export_env LIBGL_DRIVERS_PATH "$PFX/lib/dri"
-	add_export_env PKG_CONFIG_PATH "$PFX/lib/pkgconfig/" "$PFX/share/pkgconfig/"
-	add_export_env MANPATH "$PFX/share/man"
-	export ACLOCAL_PATH="$PFX/share/aclocal"
-	export ACLOCAL="aclocal -I $ACLOCAL_PATH"
+  add_export_env PATH "$PFX/bin"
+  add_export_env LD_LIBRARY_PATH "$PFX/lib"
+  add_export_env LIBGL_DRIVERS_PATH "$PFX/lib/dri"
+  add_export_env PKG_CONFIG_PATH "$PFX/lib/pkgconfig/" "$PFX/share/pkgconfig/"
+  add_export_env MANPATH "$PFX/share/man"
+  export ACLOCAL_PATH="$PFX/share/aclocal"
+  export ACLOCAL="aclocal -I $ACLOCAL_PATH"
 }
 
 function projectshell {
+  local PROJECTSHELL="$1"
+  local IGNORE_LATEX="*.log *.blg *.bbl *.aux *.brf *.tmp *.dvi *.toc *.out *.idx *.ilg *.ind"
 
-local PROJECTSHELL="$1"
-local IGNORE_LATEX="*.log *.blg *.bbl *.aux *.brf *.tmp *.dvi *.toc *.out *.idx *.ilg *.ind"
-
-case "$PROJECTSHELL" in
+  case "$PROJECTSHELL" in
 	latex)
 		export CVSIGNORE="$IGNORE_LATEX"
 		;;
@@ -473,7 +474,7 @@ case "$PROJECTSHELL" in
 	*)
 		echo "Warning: unknown projectshell '$PROJECTSHELL'."
 		;;
-esac
+  esac
 
 }
 
@@ -488,3 +489,6 @@ man() {
         LESS_TERMCAP_us=$'\e[1;32m' \
             man "$@"
 }
+
+
+. /home/hottuna/torch/install/bin/torch-activate
