@@ -1,1 +1,4 @@
-SUBSYSTEM=="usb", ATTR{idVendor}=="1d50", ATTR{idProduct}=="6018", MODE="0666"
+# Black Magic Probe
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1d50", MODE="666"
+SUBSYSTEM=="tty", ATTRS{interface}=="Black Magic GDB Server", SYMLINK+="ttyBmpGdb", MODE="666"
+SUBSYSTEM=="tty", ATTRS{interface}=="Black Magic UART Port", SYMLINK+="ttyBmpTarg", MODE="666"
