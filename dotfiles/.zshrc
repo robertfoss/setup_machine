@@ -52,6 +52,7 @@ plugins=(git)
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 export PATH="/opt/SEGGER/JLink:$PATH"
 export PATH="/opt/nordic:$PATH"
+export PATH="$PATH:/opt/nordic/nrfjprog"
 export PATH="$PATH:/opt/esp-open-sdk/xtensa-lx106-elf/bin"
 export PATH="$PATH:/opt/rpi_tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin"
 export PATH="$PATH:/opt/gcc-linaro-4.9-2014.11-x86_64_aarch64-linux-gnu/bin"
@@ -342,7 +343,13 @@ function checkpatch {
 }
 
 function rpi_init {
-  (cd && sudo cp zImage /boot/zImage && sync && rm zImage && sudo reboot)
+  (cd && \
+   sudo cp zImage /boot/ && \
+   sudo cp *rpi*.dtb /boot/ && \
+   sync && \
+   rm zImage && \
+   rm *rpi*.dtb && \
+   sudo reboot)
 }
 
 function rpi_zimage {
@@ -350,6 +357,7 @@ function rpi_zimage {
   (
     cd ~/work/linux/ && \
     scp arch/arm/boot/zImage $1:~/zImage && \
+    scp arch/arm/boot/dts/*rpi*.dtb $1:~/ && \
     ssh $1 "$(typeset -f rpi_init); rpi_init"
   )
 }
@@ -357,7 +365,7 @@ function rpi_zimage {
 function rpi_update {
   (
     cd ~/work/linux/ && \
-    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage modules dtbs -j$(nproc --ignore=1)&& \
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- zImage dtbs -j$(nproc --ignore=1)&& \
     rpi_zimage $1
   )
 }
@@ -489,6 +497,3 @@ man() {
         LESS_TERMCAP_us=$'\e[1;32m' \
             man "$@"
 }
-
-
-. /home/hottuna/torch/install/bin/torch-activate
