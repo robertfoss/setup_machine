@@ -49,6 +49,8 @@ plugins=(git)
 
 # User configuration
 
+export GOPATH="/home/hottuna/.go"
+
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 export PATH="/opt/SEGGER/JLink:$PATH"
 export PATH="/opt/nordic:$PATH"
@@ -57,8 +59,10 @@ export PATH="$PATH:/opt/esp-open-sdk/xtensa-lx106-elf/bin"
 export PATH="$PATH:/opt/rpi_tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin"
 export PATH="$PATH:/opt/gcc-linaro-4.9-2014.11-x86_64_aarch64-linux-gnu/bin"
 export PATH="/opt/depot_tools:$PATH"
+export PATH="$PATH:$GOPATH:$GOPATH/bin"
 export PATH="$PATH:/home/hottuna/.cargo/bin"
 export PATH="$PATH:/home/hottuna/.local/bin"
+export PATH="/usr/local/go/bin:$PATH"
 # export MANPATH="/usr/local/man:$MANPATH"
 
 source $ZSH/oh-my-zsh.sh
@@ -76,6 +80,7 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
 alias ......='cd ../../../../..'
+
 
 export TERM=xterm-256color
 export ALT_LOCAL=/opt/local
@@ -300,30 +305,86 @@ svgwidth(){
   rsvg-convert -a -w $2 -f svg $1 -o "${filename}_w${2}.svg"
 }
 
+function files_from_commit {
+  if [ -z ${1+x} ]; then >&2 echo "Number of commit hash supplied"; exit 1; fi
+  FILES="$(git diff-tree --no-commit-id --name-only -r $1)"
+  echo $FILES
+#  >&2 echo "files_from_commit: $FILES"
+}
+
+function get_hashes {
+  if [ -z ${1+x} ]; then >&2 echo "Number of commits not set"; exit 1; fi
+  git log --pretty=format:"%h" --no-patch $1
+}
+
+function files_from_commits {
+  if [ -z ${1+x} ]; then >&2 echo "Number of commits not set"; exit 1; fi
+  FILES=""
+  for COMMIT in $(get_hashes $1); do
+    FILES="$(files_from_commit $COMMIT)\n$FILES"
+  done
+  FILES="$(echo "$FILES" | sort | uniq | grep -v '^$' | head -n4)"
+  echo "$FILES"
+#  >&2 echo "files_from_commits: $FILES"
+}
+
+function get_authors_from_commits {
+  if [ -z ${1+x} ]; then >&2 echo "Number of commits not set"; exit 1; fi
+  AUTHORS_TOP=""
+  AUTHORS_RECENT=""
+  for FILE in $(files_from_commits $1); do
+#    AUTHORS_TOP="$(git shortlog -se -- $FILE | head -n2)\n$AUTHORS_TOP"
+    AUTHORS_RECENT="$(git log -n6 --pretty='format:%aE' -- $FILE)\n$AUTHORS_RECENT"
+  done
+  AUTHORS_TOP="$(echo $AUTHORS_TOP | sort -n --reverse)"
+#  >&2 echo "AUTHORS_TOP: $AUTHORS_TOP"
+  AUTHORS_TOP="$(echo $AUTHORS_TOP | sed 's/[0-9]*//g' | sed 's/^[ \t]*//g' | head -n5)"
+  
+  AUTHORS_RECENT="$(echo $AUTHORS_RECENT | grep -v '^$' | sort | uniq -c | sort -n --reverse)"
+#  >&2 echo "AUTHORS_RECENT: $AUTHORS_RECENT"
+  AUTHORS_RECENT="$(echo $AUTHORS_RECENT | sed 's/[0-9]*//g' | sed 's/^[ \t]*//g' | head -n5)"
+
+  AUTHORS="$AUTHORS_TOP\n$AUTHORS_RECENT"
+#  >&2 echo "AUTHORS: $AUTHORS"
+  AUTHORS="$(echo "$AUTHORS" | sort | uniq | grep -v '^$')"
+  echo "$AUTHORS"
+}
+
 function get_maintainer {
   NUM_COMMITS=$1
 
-  if [ -z ${1+x} ]; then echo "Number of commits to send not set"; return; fi
+  if [ -z ${1+x} ]; then >&2 echo "Number of commits to send not set"; exit 1; fi
 
   ROOT=$(git rev-parse --show-toplevel)
-  if [ $? -ne 0 ]; then return; fi
+  if [ $? -ne 0 ]; then >&2 echo "Not a git repo"; exit 1; fi
+
   SCRIPT="$ROOT/scripts/get_maintainer.pl"
-  if [ ! -f "$SCRIPT" ]; then echo "This is not a linux repository!" && return; fi
+  if [ ! -f "$SCRIPT" ]; then
+    MAINTAINERS="$(get_authors_from_commits HEAD~$NUM_COMMITS..HEAD)"
+  else
+    MAINTAINERS=$(git format-patch HEAD~$NUM_COMMITS..HEAD --stdout | $SCRIPT)
 
-  MAINTAINERS=$(git format-patch HEAD~$NUM_COMMITS..HEAD --stdout | $SCRIPT)
+    # Remove extraneous stats
+    MAINTAINERS=$(echo "$MAINTAINERS" | sed 's/(.*//g')
 
-  # Remove extraneous stats
-  MAINTAINERS=$(echo "$MAINTAINERS" | sed 's/(.*//g')
+    # Remove names from email addresses
+    MAINTAINERS=$(echo "$MAINTAINERS" | sed 's/.*<//g')
 
-  # Remove names from email addresses
-  MAINTAINERS=$(echo "$MAINTAINERS" | sed 's/.*<//g')
+    # Remove left over character
+    MAINTAINERS=$(echo "$MAINTAINERS" | sed 's/>//g')
+  fi
 
-  # Remove left over character
-  MAINTAINERS=$(echo "$MAINTAINERS" | sed 's/>//g')
 
-  echo "$MAINTAINERS" | while read email; do
-    echo -n "--to=${email}  ";
+#  >&2 echo "MAINTAINERS:"
+#  >&2 echo "$MAINTAINERS"
+  
+  RECIPIENTS=""
+  echo "$MAINTAINERS" | while read EMAIL; do
+#    >&2 echo "EMAIL: $EMAIL"
+    RECIPIENTS="$RECIPIENTS --to=$EMAIL"
   done
+  echo -n "$RECIPIENTS"
+#  echo ""
 }
 
 function checkpatch {
