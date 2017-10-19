@@ -465,6 +465,35 @@ function projectshell {
   local IGNORE_LATEX="*.log *.blg *.bbl *.aux *.brf *.tmp *.dvi *.toc *.out *.idx *.ilg *.ind"
 
   case "$PROJECTSHELL" in
+    opencl)
+    	export ALT_LOCAL="/opt/local"
+		prefix_setup "$ALT_LOCAL"
+        export LLVM_DIR=~/work/llvm
+        export SPVTOOLS_DIR=~/work/spvtools
+        export CLSPV_DIR=~/work/clspv
+        export MESA_DIR=~/work/mesa
+        export LLVM_INSTALL_PREFIX=$ALT_LOCAL
+        export SPVTOOLS_INSTALL_PREFIX=$ALT_LOCAL
+        export CLSPV_INSTALL_PREFIX=$ALT_LOCAL
+        export MESA_INSTALL_PREFIX=$ALT_LOCAL
+
+        mkdir -p $LLVM_INSTALL_PREFIX
+        mkdir -p $SPVTOOLS_INSTALL_PREFIX
+        mkdir -p $MESA_INSTALL_PREFIX
+
+#        mkdir -p $PATH_TO_MESA/build
+#        cd $PATH_TO_MESA/build
+#        cd -
+#        cd $PATH_TO_MESA
+#        export CPPFLAGS="${CPPFLAGS} -I${SPVTOOLS_INSTALL_PREFIX}/include" LDFLAGS="${LDFLAGS} -L${SPVTOOLS_INSTALL_PREFIX}/lib64"
+#        ./autogen.sh --prefix=${MESA_INSTALL_PREFIX} --enable-llvm --enable-opencl --with-llvm-prefix=${LLVM_INSTALL_PREFIX} --enable-debug
+#        cd -
+
+        PATH=\"${LLVM_INSTALL_PREFIX}/bin:${SPVTOOLS_INSTALL_PREFIX}/bin:${MESA_INSTALL_PREFIX}/bin:${PATH}\"
+        LD_LIBRARY_PATH=\"${LLVM_INSTALL_PREFIX}/lib:${SPVTOOLS_INSTALL_PREFIX}/lib:${MESA_INSTALL_PREFIX}/lib:/usr/local/lib\"
+    PKG_CONFIG_PATH=\"${LLVM_INSTALL_PREFIX}/lib/pkgconfig/:${LLVM_INSTALL_PREFIX}/share/pkgconfig:${SPVTOOLS_INSTALL_PREFIX}/lib/pkgconfig/:${SPVTOOLS_INSTALL_PREFIX}/share/pkgconfig:${MESA_INSTALL_PREFIX}/lib/pkgconfig/:${MESA_INSTALL_PREFIX}/share/pkgconfig\"
+#        ACLOCAL=\"aclocal -I ${LLVM_INSTALL_PREFIX}/share/aclocal:${MESA_INSTALL_PREFIX}/share/aclocal\"
+        ;;
 	latex)
 		export CVSIGNORE="$IGNORE_LATEX"
 		;;
