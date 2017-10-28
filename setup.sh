@@ -99,7 +99,7 @@ noFail apt -y install zsh git wget sudo openssh-server mosh nano screen htop
 apt -y install silversearcher-ag
 
 DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
-              gcc cmake automake autoconf libtool ninja guake default-jdk \
+              gcc cmake automake autoconf bison libtool ninja guake default-jdk \
               autossh adb fastboot zlib1g-dev android-tools-fsutils python-pip \
               python3-pip aria2 libboost-all-dev vim cmake"
 
