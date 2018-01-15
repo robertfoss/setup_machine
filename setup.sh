@@ -1,6 +1,7 @@
 #!/bin/sh
 
 RESDIR="/tmp/setup_machine"
+USER=$SUDO_USER
 
 if [ "$(id -u)" != "0" ]; then
    echo "This script must be run as root" 1>&2
@@ -106,7 +107,7 @@ DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
-setupUser robertfoss
+setupUser $USER
 setupUser root
 
 noFail configSsh
