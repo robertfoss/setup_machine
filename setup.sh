@@ -105,7 +105,7 @@ DESKTOP_PKGS="ncurses-dev pidgin pidgin-otr deluge build-essential clang \
 
 rm -rf ${RESDIR}; git clone --depth=1 https://github.com/robertfoss/setup_machine.git ${RESDIR}
 
-setupUser hottuna
+setupUser robertfoss
 setupUser root
 
 noFail configSsh
