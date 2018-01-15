@@ -11,6 +11,7 @@ configSudo()
 {
     echo "Configuring sudo for $1"
     echo "$1 ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    echo "Defaults        !tty_tickets" >> /etc/sudoers
     sed -i 's/.*Defaults.*env_reset.*/Defaults	env_reset,!tty_tickets,timestamp_timeout=60/' /etc/sudoers
 }
 
