@@ -49,9 +49,9 @@ plugins=(git)
 
 # User configuration
 
-export GOPATH="/home/hottuna/.go"
+export GOPATH="$HOME/.go"
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+export PATH="/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/games:/usr/local/games"
 export PATH="/opt/SEGGER/JLink:$PATH"
 export PATH="/opt/nordic:$PATH"
 export PATH="$PATH:/opt/nordic/nrfjprog"
@@ -60,8 +60,8 @@ export PATH="$PATH:/opt/rpi_tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-ras
 export PATH="$PATH:/opt/gcc-linaro-4.9-2014.11-x86_64_aarch64-linux-gnu/bin"
 export PATH="/opt/depot_tools:$PATH"
 export PATH="$PATH:$GOPATH:$GOPATH/bin"
-export PATH="$PATH:/home/hottuna/.cargo/bin"
-export PATH="$PATH:/home/hottuna/.local/bin"
+export PATH="$PATH:$HOME/.cargo/bin"
+export PATH="$PATH:$HOME/.local/bin"
 export PATH="/usr/local/go/bin:$PATH"
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -74,6 +74,9 @@ alias ll="ls -lah"
 alias weechat="mosh -p 11500:16000 --ssh=\"ssh -p 11000\" k.xil.se -- screen -D -RR weechat weechat-curses"
 alias ds="du -d 1 -h | sort --sort=human-numeric"
 alias x="xdg-open"
+alias rg="rg --hidden --no-ignore-vcs"
+alias fd="fd --hidden --no-ignore"
+alias sudo="sudo "
 
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -90,6 +93,10 @@ export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$ALT_LOCAL/lib/pkgconfig"
 export USE_CCACHE=1
 export CCACHE_DIR=/opt/.ccache
 export CCACHE_COMPRESS=true
+
+# Backup and restore ZSH history
+strings ~/.zsh_history | sed ':a;N;$!ba;s/\\\\\n//g' | sort | uniq -u > ~/.zsh_history.backup
+cat ~/.zsh_history ~/.zsh_history.backup | sed ':a;N;$!ba;s/\\\\\n//g'| sort | uniq > ~/.zsh_history.backup
 
 function httpserver()
 {
@@ -449,15 +456,17 @@ function add_export_env {
 }
 
 function prefix_setup {
-  local PFX="$1"
+  local PREFIX="$1"
 
-  add_export_env PATH "$PFX/bin"
-  add_export_env LD_LIBRARY_PATH "$PFX/lib"
-  add_export_env LIBGL_DRIVERS_PATH "$PFX/lib/dri"
-  add_export_env PKG_CONFIG_PATH "$PFX/lib/pkgconfig/" "$PFX/share/pkgconfig/"
-  add_export_env MANPATH "$PFX/share/man"
-  export ACLOCAL_PATH="$PFX/share/aclocal"
+  add_export_env PATH "$PREFIX/bin"
+  add_export_env LD_LIBRARY_PATH "$PREFIX/lib"
+  add_export_env LIBGL_DRIVERS_PATH "$PREFIX/lib/dri"
+  add_export_env PKG_CONFIG_PATH "$PREFIX/lib/pkgconfig/" "$PREFIX/share/pkgconfig/"
+  add_export_env MANPATH "$PREFIX/share/man"
+  export ACLOCAL_PATH="$PREFIX/share/aclocal"
+  mkdir -p "$ACLOCAL_PATH"
   export ACLOCAL="aclocal -I $ACLOCAL_PATH"
+  export PREFIX=$PREFIX
 }
 
 function projectshell {
@@ -465,6 +474,18 @@ function projectshell {
   local IGNORE_LATEX="*.log *.blg *.bbl *.aux *.brf *.tmp *.dvi *.toc *.out *.idx *.ilg *.ind"
 
   case "$PROJECTSHELL" in
+    cros | chromiumos)
+        export BOARD=amd64-generic
+        cd /opt/chromiumos
+        cros_sdk --enter
+        ;;
+
+    virgl | virglrenderer)
+    	export ALT_LOCAL="/opt/local/virgl"
+    	mkdir -p "$ALT_LOCAL"
+		prefix_setup "$ALT_LOCAL"
+		;;
+
     opencl)
     	export ALT_LOCAL="/opt/local"
 		prefix_setup "$ALT_LOCAL"
