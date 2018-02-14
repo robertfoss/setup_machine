@@ -96,7 +96,7 @@ export CCACHE_COMPRESS=true
 
 # Backup and restore ZSH history
 strings ~/.zsh_history | sed ':a;N;$!ba;s/\\\\\n//g' | sort | uniq -u > ~/.zsh_history.backup
-cat ~/.zsh_history ~/.zsh_history.backup | sed ':a;N;$!ba;s/\\\\\n//g'| sort | uniq > ~/.zsh_history.backup
+cat ~/.zsh_history ~/.zsh_history.backup | sed ':a;N;$!ba;s/\\\\\n//g'| sort | uniq > ~/.zsh_history
 
 function httpserver()
 {
